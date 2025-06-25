@@ -2,18 +2,22 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { Database } from '@/integrations/supabase/types';
+
+type DbProject = Database['public']['Tables']['projects']['Row'];
 
 interface Project {
   id: string;
   name: string;
-  description: string;
-  technologies: string[];
-  live_url: string;
-  github_url: string;
-  image_url: string;
-  status: 'active' | 'completed' | 'in-progress';
-  created_at: string;
-  updated_at: string;
+  description: string | null;
+  technologies: string[] | null;
+  live_url: string | null;
+  github_url: string | null;
+  image_url: string | null;
+  status: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+  user_id: string | null;
 }
 
 export const useProjects = () => {
@@ -42,7 +46,7 @@ export const useProjects = () => {
     }
   };
 
-  const addProject = async (projectData: Omit<Project, 'id' | 'created_at' | 'updated_at'>) => {
+  const addProject = async (projectData: Omit<Project, 'id' | 'created_at' | 'updated_at' | 'user_id'>) => {
     try {
       const { data, error } = await supabase
         .from('projects')

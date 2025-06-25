@@ -6,12 +6,13 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Mail, Phone, MessageCircle, Send } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 export const ContactSection = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    company: '',
+    subject: '',
     message: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -21,15 +22,28 @@ export const ContactSection = () => {
     e.preventDefault();
     setIsSubmitting(true);
     
-    // Simulate form submission
-    setTimeout(() => {
+    try {
+      const { error } = await supabase
+        .from('contact_messages')
+        .insert([formData]);
+
+      if (error) throw error;
+
       toast({
         title: "הודעה נשלחה בהצלחה!",
         description: "אחזור אליך בהקדם האפשרי.",
       });
-      setFormData({ name: '', email: '', company: '', message: '' });
+      setFormData({ name: '', email: '', subject: '', message: '' });
+    } catch (error) {
+      console.error('Error sending message:', error);
+      toast({
+        title: "שגיאה בשליחת הודעה",
+        description: "נסה שוב מאוחר יותר",
+        variant: "destructive"
+      });
+    } finally {
       setIsSubmitting(false);
-    }, 1000);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -57,7 +71,7 @@ export const ContactSection = () => {
               </div>
               <div>
                 <p className="text-white font-medium">אימייל</p>
-                <p className="text-gray-300">rivka.dev@email.com</p>
+                <p className="text-gray-300">r0548500974@gmail.com</p>
               </div>
             </div>
             
@@ -67,7 +81,7 @@ export const ContactSection = () => {
               </div>
               <div>
                 <p className="text-white font-medium">טלפון</p>
-                <p className="text-gray-300">050-123-4567</p>
+                <p className="text-gray-300">0548500974</p>
               </div>
             </div>
             
@@ -76,8 +90,8 @@ export const ContactSection = () => {
                 <MessageCircle className="w-6 h-6 text-purple-400" />
               </div>
               <div>
-                <p className="text-white font-medium">זמינות</p>
-                <p className="text-gray-300">ראשון-חמישי 9:00-18:00</p>
+                <p className="text-white font-medium">מיקום</p>
+                <p className="text-gray-300">ישראל, מרכז</p>
               </div>
             </div>
           </div>
@@ -85,7 +99,7 @@ export const ContactSection = () => {
           <div className="mt-8 p-4 bg-purple-500/10 rounded-lg border border-purple-500/20">
             <h4 className="text-purple-400 font-medium mb-2">למה לבחור בי?</h4>
             <ul className="text-gray-300 text-sm space-y-1">
-              <li>• ניסיון של 5+ שנים בפיתוח</li>
+              <li>• ניסיון רב בפיתוח אפליקציות</li>
               <li>• התמחות בטכנולוגיות מתקדמות</li>
               <li>• עמידה בלוחות זמנים</li>
               <li>• תמיכה מלאה לאחר פרויקט</li>
@@ -124,9 +138,9 @@ export const ContactSection = () => {
             <div>
               <Input
                 type="text"
-                name="company"
-                placeholder="חברה (אופציונלי)"
-                value={formData.company}
+                name="subject"
+                placeholder="נושא"
+                value={formData.subject}
                 onChange={handleChange}
                 className="bg-black/20 border-purple-500/30 text-white placeholder:text-gray-400"
               />

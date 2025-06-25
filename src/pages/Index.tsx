@@ -4,6 +4,8 @@ import { Header } from '@/components/Header';
 import { ProfileSection } from '@/components/ProfileSection';
 import { GitHubSection } from '@/components/GitHubSection';
 import { ProjectsSection } from '@/components/ProjectsSection';
+import { ContactSection } from '@/components/ContactSection';
+import { JobOffersSection } from '@/components/JobOffersSection';
 import { AdminPanel } from '@/components/AdminPanel';
 import { AuthProvider } from '@/hooks/useAuth';
 
@@ -22,6 +24,8 @@ const Index = () => {
             <ProfileSection />
             <GitHubSection />
             <ProjectsSection />
+            <ContactSection />
+            <JobOffersSection />
           </main>
         )}
       </div>
