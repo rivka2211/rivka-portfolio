@@ -31,7 +31,7 @@ export const ProjectManager = () => {
     liveUrl: '',
     githubUrl: '',
     image: '',
-    status: 'active' as const
+    status: 'active' as 'active' | 'completed' | 'in-progress'
   });
   const { toast } = useToast();
 
@@ -150,7 +150,7 @@ export const ProjectManager = () => {
               <select
                 id="status"
                 value={formData.status}
-                onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value as any }))}
+                onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value as 'active' | 'completed' | 'in-progress' }))}
                 className="w-full h-10 px-3 py-2 bg-black/20 border border-purple-500/30 rounded-md text-white"
               >
                 <option value="active">פעיל</option>
