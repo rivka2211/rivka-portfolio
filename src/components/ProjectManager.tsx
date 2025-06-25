@@ -7,63 +7,52 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Edit, Trash2, ExternalLink, Github, Save, X } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { useProjects } from '@/hooks/useProjects';
 
 interface Project {
-  id: number;
+  id: string;
   name: string;
   description: string;
   technologies: string[];
-  liveUrl: string;
-  githubUrl: string;
-  image: string;
+  live_url: string;
+  github_url: string;
+  image_url: string;
   status: 'active' | 'completed' | 'in-progress';
 }
 
 export const ProjectManager = () => {
-  const [projects, setProjects] = useState<Project[]>([]);
+  const { projects, loading, addProject, updateProject, deleteProject } = useProjects();
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
     technologies: '',
-    liveUrl: '',
-    githubUrl: '',
-    image: '',
+    live_url: '',
+    github_url: '',
+    image_url: '',
     status: 'active' as 'active' | 'completed' | 'in-progress'
   });
-  const { toast } = useToast();
 
-  const handleSaveProject = () => {
+  const handleSaveProject = async () => {
     const techArray = formData.technologies.split(',').map(tech => tech.trim()).filter(Boolean);
     
-    if (editingProject) {
-      // Update existing project
-      setProjects(prev => prev.map(p => 
-        p.id === editingProject.id 
-          ? { ...editingProject, ...formData, technologies: techArray }
-          : p
-      ));
-      toast({
-        title: "הפרויקט עודכן בהצלחה!",
-        description: `הפרויקט "${formData.name}" עודכן.`,
-      });
-    } else {
-      // Add new project
-      const newProject: Project = {
-        id: Date.now(),
-        ...formData,
-        technologies: techArray
-      };
-      setProjects(prev => [...prev, newProject]);
-      toast({
-        title: "הפרויקט נוסף בהצלחה!",
-        description: `הפרויקט "${formData.name}" נוסף לרשימה.`,
-      });
+    try {
+      if (editingProject) {
+        await updateProject(editingProject.id, {
+          ...formData,
+          technologies: techArray
+        });
+      } else {
+        await addProject({
+          ...formData,
+          technologies: techArray
+        });
+      }
+      resetForm();
+    } catch (error) {
+      // Error is handled in the hook
     }
-    
-    resetForm();
   };
 
   const handleEditProject = (project: Project) => {
@@ -72,20 +61,20 @@ export const ProjectManager = () => {
       name: project.name,
       description: project.description,
       technologies: project.technologies.join(', '),
-      liveUrl: project.liveUrl,
-      githubUrl: project.githubUrl,
-      image: project.image,
+      live_url: project.live_url,
+      github_url: project.github_url,
+      image_url: project.image_url,
       status: project.status
     });
     setShowForm(true);
   };
 
-  const handleDeleteProject = (id: number) => {
-    setProjects(prev => prev.filter(p => p.id !== id));
-    toast({
-      title: "הפרויקט נמחק",
-      description: "הפרויקט הוסר מהרשימה.",
-    });
+  const handleDeleteProject = async (id: string) => {
+    try {
+      await deleteProject(id);
+    } catch (error) {
+      // Error is handled in the hook
+    }
   };
 
   const resetForm = () => {
@@ -93,9 +82,9 @@ export const ProjectManager = () => {
       name: '',
       description: '',
       technologies: '',
-      liveUrl: '',
-      githubUrl: '',
-      image: '',
+      live_url: '',
+      github_url: '',
+      image_url: '',
       status: 'active'
     });
     setEditingProject(null);
@@ -110,6 +99,10 @@ export const ProjectManager = () => {
       default: return 'bg-gray-500/20 text-gray-300';
     }
   };
+
+  if (loading) {
+    return <div className="text-white">טוען פרויקטים...</div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -173,21 +166,21 @@ export const ProjectManager = () => {
           
           <div className="grid md:grid-cols-2 gap-4 mt-4">
             <div>
-              <Label htmlFor="liveUrl" className="text-white">קישור לאתר</Label>
+              <Label htmlFor="live_url" className="text-white">קישור לאתר</Label>
               <Input
-                id="liveUrl"
-                value={formData.liveUrl}
-                onChange={(e) => setFormData(prev => ({ ...prev, liveUrl: e.target.value }))}
+                id="live_url"
+                value={formData.live_url}
+                onChange={(e) => setFormData(prev => ({ ...prev, live_url: e.target.value }))}
                 className="bg-black/20 border-purple-500/30 text-white"
                 placeholder="https://..."
               />
             </div>
             <div>
-              <Label htmlFor="githubUrl" className="text-white">קישור GitHub</Label>
+              <Label htmlFor="github_url" className="text-white">קישור GitHub</Label>
               <Input
-                id="githubUrl"
-                value={formData.githubUrl}
-                onChange={(e) => setFormData(prev => ({ ...prev, githubUrl: e.target.value }))}
+                id="github_url"
+                value={formData.github_url}
+                onChange={(e) => setFormData(prev => ({ ...prev, github_url: e.target.value }))}
                 className="bg-black/20 border-purple-500/30 text-white"
                 placeholder="https://github.com/..."
               />
@@ -206,11 +199,11 @@ export const ProjectManager = () => {
               />
             </div>
             <div>
-              <Label htmlFor="image" className="text-white">קישור לתמונה</Label>
+              <Label htmlFor="image_url" className="text-white">קישור לתמונה</Label>
               <Input
-                id="image"
-                value={formData.image}
-                onChange={(e) => setFormData(prev => ({ ...prev, image: e.target.value }))}
+                id="image_url"
+                value={formData.image_url}
+                onChange={(e) => setFormData(prev => ({ ...prev, image_url: e.target.value }))}
                 className="bg-black/20 border-purple-500/30 text-white"
                 placeholder="https://..."
               />
@@ -275,21 +268,21 @@ export const ProjectManager = () => {
             </div>
             
             <div className="flex space-x-2">
-              {project.liveUrl && (
+              {project.live_url && (
                 <Button
                   size="sm"
-                  onClick={() => window.open(project.liveUrl, '_blank')}
+                  onClick={() => window.open(project.live_url, '_blank')}
                   className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
                 >
                   <ExternalLink className="w-4 h-4 mr-2" />
                   צפה באתר
                 </Button>
               )}
-              {project.githubUrl && (
+              {project.github_url && (
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => window.open(project.githubUrl, '_blank')}
+                  onClick={() => window.open(project.github_url, '_blank')}
                   className="border-purple-500/50 text-purple-400"
                 >
                   <Github className="w-4 h-4" />

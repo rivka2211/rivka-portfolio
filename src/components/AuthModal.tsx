@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Mail, Shield, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -18,7 +19,6 @@ export const AuthModal = ({ isOpen, onClose, onAuthenticated }: AuthModalProps) 
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
-  const [generatedCode, setGeneratedCode] = useState('');
   const { toast } = useToast();
 
   const handleSendCode = async () => {
@@ -32,23 +32,45 @@ export const AuthModal = ({ isOpen, onClose, onAuthenticated }: AuthModalProps) 
     }
 
     setLoading(true);
-    // Generate a 6-digit code
-    const authCode = Math.floor(100000 + Math.random() * 900000).toString();
-    setGeneratedCode(authCode);
+    try {
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/`
+        }
+      });
 
-    // Simulate sending email
-    setTimeout(() => {
-      setLoading(false);
+      if (error) throw error;
+
       setStep('code');
       toast({
         title: "קוד נשלח בהצלחה!",
-        description: `קוד האימות שלך הוא: ${authCode}`,
+        description: "בדוק את האימייל שלך עבור קוד האימות.",
       });
-    }, 1500);
+    } catch (error: any) {
+      toast({
+        title: "שגיאה",
+        description: error.message || "שגיאה בשליחת קוד האימות",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleVerifyCode = () => {
-    if (code === generatedCode) {
+  const handleVerifyCode = async () => {
+    if (!code) return;
+
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.verifyOtp({
+        email,
+        token: code,
+        type: 'email'
+      });
+
+      if (error) throw error;
+
       toast({
         title: "התחברת בהצלחה!",
         description: "ברוכה השבה, רבקה!",
@@ -56,12 +78,14 @@ export const AuthModal = ({ isOpen, onClose, onAuthenticated }: AuthModalProps) 
       onAuthenticated();
       onClose();
       resetForm();
-    } else {
+    } catch (error: any) {
       toast({
         title: "שגיאה",
-        description: "קוד האימות שגוי.",
+        description: error.message || "קוד האימות שגוי",
         variant: "destructive"
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -69,7 +93,6 @@ export const AuthModal = ({ isOpen, onClose, onAuthenticated }: AuthModalProps) 
     setStep('email');
     setEmail('');
     setCode('');
-    setGeneratedCode('');
   };
 
   if (!isOpen) return null;
@@ -147,10 +170,10 @@ export const AuthModal = ({ isOpen, onClose, onAuthenticated }: AuthModalProps) 
               </Button>
               <Button
                 onClick={handleVerifyCode}
-                disabled={!code || code.length !== 6}
+                disabled={loading || !code}
                 className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
               >
-                אמת
+                {loading ? "מאמת..." : "אמת"}
               </Button>
             </div>
           </div>

@@ -4,28 +4,21 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ExternalLink, Github, Plus } from 'lucide-react';
-
-interface Project {
-  id: number;
-  name: string;
-  description: string;
-  technologies: string[];
-  liveUrl: string;
-  githubUrl: string;
-  image: string;
-  status: 'active' | 'completed' | 'in-progress';
-}
+import { useProjects } from '@/hooks/useProjects';
 
 export const ProjectsSection = () => {
-  const [projects, setProjects] = useState<Project[]>([]);
+  const { projects, loading } = useProjects();
 
-  useEffect(() => {
-    // Load projects from localStorage or use default empty array
-    const savedProjects = localStorage.getItem('portfolio-projects');
-    if (savedProjects) {
-      setProjects(JSON.parse(savedProjects));
-    }
-  }, []);
+  if (loading) {
+    return (
+      <section id="projects" className="animate-fade-in">
+        <div className="text-center mb-12">
+          <h2 className="text-4xl font-bold text-white mb-4">הפרויקטים שלי</h2>
+          <p className="text-gray-300 text-lg">טוען פרויקטים...</p>
+        </div>
+      </section>
+    );
+  }
 
   if (projects.length === 0) {
     return (
@@ -59,9 +52,9 @@ export const ProjectsSection = () => {
         {projects.map((project) => (
           <Card key={project.id} className="bg-black/40 backdrop-blur-lg border-purple-500/20 p-6 hover:border-purple-400/40 transition-all duration-300 hover:scale-105">
             <div className="aspect-video bg-gradient-to-br from-purple-600/20 to-pink-600/20 rounded-lg mb-4 flex items-center justify-center overflow-hidden">
-              {project.image ? (
+              {project.image_url ? (
                 <img
-                  src={project.image}
+                  src={project.image_url}
                   alt={project.name}
                   className="w-full h-full object-cover rounded-lg"
                   onError={(e) => {
@@ -102,22 +95,22 @@ export const ProjectsSection = () => {
             </div>
             
             <div className="flex space-x-2">
-              {project.liveUrl && (
+              {project.live_url && (
                 <Button
                   size="sm"
                   className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
-                  onClick={() => window.open(project.liveUrl, '_blank')}
+                  onClick={() => window.open(project.live_url, '_blank')}
                 >
                   <ExternalLink className="w-4 h-4 mr-2" />
                   צפה באתר
                 </Button>
               )}
-              {project.githubUrl && (
+              {project.github_url && (
                 <Button
                   size="sm"
                   variant="outline"
                   className="border-purple-500/50 text-purple-400 hover:bg-purple-500/20"
-                  onClick={() => window.open(project.githubUrl, '_blank')}
+                  onClick={() => window.open(project.github_url, '_blank')}
                 >
                   <Github className="w-4 h-4" />
                 </Button>
