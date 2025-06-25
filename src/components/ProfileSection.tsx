@@ -1,19 +1,74 @@
 
+import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, Mail, Phone, Calendar, Code, Award } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { MapPin, Mail, Phone, Calendar, Code, Award, Upload, Camera } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 export const ProfileSection = () => {
+  const [profileImage, setProfileImage] = useState<string | null>(null);
+  const { toast } = useToast();
+
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setProfileImage(e.target?.result as string);
+        toast({
+          title: "תמונה הועלתה בהצלחה!",
+          description: "תמונת הפרופיל שלך עודכנה.",
+        });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   return (
     <section id="profile" className="animate-fade-in">
       <Card className="bg-black/40 backdrop-blur-lg border-purple-500/20 p-8">
         <div className="grid md:grid-cols-3 gap-8 items-center">
-          <div className="text-center">
-            <div className="w-48 h-48 mx-auto bg-gradient-to-r from-purple-500 to-pink-500 rounded-full p-1">
-              <div className="w-full h-full bg-gray-800 rounded-full flex items-center justify-center">
-                <span className="text-6xl font-bold text-white">R</span>
+          <div className="text-center relative">
+            <div className="w-48 h-48 mx-auto bg-gradient-to-r from-purple-500 to-pink-500 rounded-full p-1 relative group">
+              <div className="w-full h-full bg-gray-800 rounded-full flex items-center justify-center overflow-hidden">
+                {profileImage ? (
+                  <img 
+                    src={profileImage} 
+                    alt="Profile" 
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="relative">
+                    <div className="text-6xl font-bold text-white flex items-center">
+                      <span className="text-purple-300">R</span>
+                      <span className="text-pink-300 ml-1">E</span>
+                    </div>
+                    <div className="absolute -top-2 -right-2 w-4 h-4 bg-gradient-to-r from-cyan-400 to-blue-400 rounded-full animate-pulse"></div>
+                    <div className="absolute -bottom-1 -left-1 w-3 h-3 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full animate-pulse delay-500"></div>
+                  </div>
+                )}
+              </div>
+              <div className="absolute inset-0 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <Camera className="w-8 h-8 text-white" />
               </div>
             </div>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              className="hidden"
+              id="profile-image-upload"
+            />
+            <Button
+              onClick={() => document.getElementById('profile-image-upload')?.click()}
+              size="sm"
+              className="mt-4 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+            >
+              <Upload className="w-4 h-4 mr-2" />
+              העלה תמונה
+            </Button>
           </div>
           
           <div className="md:col-span-2 space-y-6">
@@ -54,7 +109,7 @@ export const ProfileSection = () => {
               </div>
               <div className="flex items-center space-x-3">
                 <Mail className="w-5 h-5 text-purple-400" />
-                <span>rivka.dev@email.com</span>
+                <span>r0548500974@gmail.com</span>
               </div>
               <div className="flex items-center space-x-3">
                 <Calendar className="w-5 h-5 text-purple-400" />
